@@ -1,15 +1,15 @@
-# Datos (originales en Drive y dataset generado por suffle_images.py)
+# Data
 images/
 labels/
 dataset/
 
-# Pesos de modelos y resultados de entrenamiento
+# Models and training results weights
 *.pt
 *.pth
 *.onnx
 runs/
 
-# Vídeos
+# Videos
 *.mp4
 
 # Python / Jupyter
@@ -19,6 +19,6 @@ __pycache__/
 .venv/
 venv/
 
-# Sistema
+# System
 .DS_Store
 Thumbs.db
