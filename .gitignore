@@ -4,6 +4,7 @@ labels/
 dataset/
 results/
 plates/
+PaddleOCR/
 
 # Models and training results weights
 *.pt
