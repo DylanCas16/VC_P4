@@ -2,15 +2,14 @@
 images/
 labels/
 dataset/
+results/
+plates/
 
 # Models and training results weights
 *.pt
 *.pth
 *.onnx
 runs/
-
-# Videos
-*.mp4
 
 # Python / Jupyter
 __pycache__/
