@@ -8,9 +8,9 @@ Para importar el dataset en el proyecto, es necesario descargar tanto la carpeta
 
 ## Detección de matrículas
 
-### Entorno para YOLO con Python 3.9.25
+### Entorno de Anaconda para YOLO con Python 3.9.25
 
-Dentro del entorno de Anaconda se instalaron las siguientes para el entrenamiento del modelo YOLO:
+Dentro del entorno se instalaron las siguientes para el entrenamiento del modelo YOLO:
 
 - torch 2.8.0+cu126
 - torchvision 0.23.0+cu126
@@ -27,6 +27,15 @@ Dentro del entorno de Anaconda se instalaron las siguientes para el entrenamient
 - tqdm 4.70.1
 - jupyter 1.1.1, jupyterlab 4.5.11, notebook 7.5.8, ipykernel 6.31.0
 
+Dependencias instaladas mediante los siguientes comandos:
+
+```bash
+pip install torch==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cu126
+pip install ultralytics==8.4.200
+pip install ipykernel==6.31.0
+pip install jupyter==1.1.1 jupyterlab==4.5.11 notebook==7.5.8
+```
+
 Además, la GPU utilizada para el entrenamiento fue la siguiente:
 
 - NVIDIA GeForce RTX 4050 Laptop (driver 617.42), CUDA 12.6.
@@ -39,7 +48,7 @@ La primera celda de código está destinada al reparto de las imágenes del data
 
 El código va emparejando cada imagen con su etiqueta buscando los ficheros que contengan el mismo nombre, para posteriormente mezclar estas parejas aleatoriamente a través de una semilla en cada subdirectorio.
 
-### Entrenamiento del modelo YOLO (`YOLO_P4.ipynb`)
+### Detección de matrículas con modelo YOLO (`YOLO_P4.ipynb`)
 
 Una vez generado el directorio `dataset/`, se procede con la importación de los paquetes en el código para la ejecución del entrenamiento y manejo de YOLO. Aunque es necesario primero convertir las etiquetas de `.json` a `.txt` para que el modelo pueda usarlas. 
 
@@ -67,30 +76,31 @@ Finalmente, los resultados se guardan en un nuevo directorio llamado `results`, 
 
 En el caso de `plate-detection-augmentation`, que es el que se muestra en el cuaderno, los parámetros utilizados fueron los de la siguiente tabla:
 
-| Parámetro | Defecto | Tipo | Categoría | Qué hace | ¿Aplica a detección? |
-|---|---|---|---|---|---|
-| `hsv_h` | 0.015 | float | Color | Cambia el tono (color base) de la imagen, hasta ±1.5 % de la rueda de color. | Sí |
-| `hsv_s` | 0.7 | float | Color | Cambia la saturación, hasta ±70 %. | Sí |
-| `hsv_v` | 0.4 | float | Color | Cambia el brillo, hasta ±40 %. | Sí |
-| `bgr` | 0.0 | float (prob.) | Color | Probabilidad de intercambiar los canales RGB por BGR. | Sí |
-| `degrees` | 0.0 | float | Geometría | Rota la imagen hasta ±N grados. | Sí |
-| `translate` | 0.1 | float | Geometría | Desplaza la imagen hasta ±10 % de su tamaño. | Sí |
-| `scale` | 0.5 | float o (min, max) | Geometría | Agranda o encoge la imagen hasta ±50 %. | Sí |
-| `shear` | 0.0 | float | Geometría | Inclina la imagen en diagonal, hasta ±N grados. | Sí |
-| `perspective` | 0.0 | float | Geometría | Simula un cambio de punto de vista (valores típicos de 0 a 0.001). | Sí |
-| `fliplr` | 0.5 | float (prob.) | Geometría | Probabilidad de voltear la imagen horizontalmente (espejo). | Sí |
-| `flipud` | 0.0 | float (prob.) | Geometría | Probabilidad de voltear la imagen verticalmente. | Sí |
-| `mosaic` | 1.0 | float (prob.) | Mezcla | Probabilidad de combinar 4 imágenes en una. | Sí |
-| `mixup` | 0.0 | float (prob.) | Mezcla | Probabilidad de superponer dos imágenes con transparencia. | Sí |
-| `cutmix` | 0.0 | float (prob.) | Mezcla | Probabilidad de recortar un trozo de una imagen y pegarlo en otra. | Sí |
-| `close_mosaic` | 10 | int (épocas) | Mezcla | Desactiva el mosaico en las últimas N épocas del entrenamiento. | Sí |
-| `multi_scale` | 0.0 | float | Escala | Varía el tamaño de entrada durante el entrenamiento, como fracción de `imgsz`. | Sí |
-| `copy_paste` | 0.0 | float | Mezcla | Copia objetos de unas imágenes a otras (segmentación y OBB). | No |
-| `copy_paste_mode` | `flip` | str | Mezcla | Estrategia de copy-paste: `flip` o `mixup`. | No |
-| `auto_augment` | `randaugment` | str | Política | Política de aumento automático: `randaugment`, `autoaugment` o `augmix`. | No (clasificación) |
-| `erasing` | 0.4 | float (prob.) | Política | Probabilidad de borrar un trozo aleatorio de la imagen. | No (clasificación) |
+| Parámetro | Defecto | Categoría | Qué hace |
+|---|---|---|---|
+| `hsv_h` | 0.015 | Color | Cambia el tono (color base) de la imagen, hasta ±1.5 % de la rueda de color. |
+| `hsv_s` | 0.7 | Color | Cambia la saturación, hasta ±70 %. |
+| `hsv_v` | 0.4 | Color | Cambia el brillo, hasta ±40 %. |
+| `degrees` | 5.0 | Geometría | Rota la imagen hasta ±5 grados. |
+| `translate` | 0.1 | Geometría | Desplaza la imagen hasta ±10 % de su tamaño. |
+| `scale` | 0.5 | Geometría | Agranda o encoge la imagen hasta ±50 %. |
+| `shear` | 2.0 | Geometría | Inclina la imagen en diagonal, hasta ±2 grados. |
+| `perspective` | 0.0005 | Geometría | Simula un cambio de punto de vista. |
+| `fliplr` | 0.0 | Geometría | Probabilidad de voltear la imagen horizontalmente (espejo). |
+| `mosaic` | 1.0 | Mezcla | Probabilidad de combinar 4 imágenes en una. |
+| `mixup` | 0.1 | Mezcla | Probabilidad de superponer dos imágenes con transparencia. |
+| `erasing` | 0.3 | Política | Probabilidad de borrar un trozo aleatorio de la imagen. |
+| `close_mosaic` | 10 | Mezcla | Desactiva el mosaico en las últimas 10 épocas del entrenamiento. |
 
-### PaddleOCR instalado hasta ahora en `VC_P4` (esto provoca el conflicto de cuDNN con torch)
+#### Evaluación y resultados del modelo YOLO
+
+Una vez entrenado del modelo se procede con la prueba final utilizando el subdirectorio `dataset/test/`. Para ello se hace uso de la función `val()`.
+
+## Lector de matrículas
+
+### Problema con el primer entorno de Anaconda para PaddleOCR
+
+Al principio se intentó instalar todas las dependencias de PaddleOCR dentro del entorno para YOLO, instalando las siguientes dependencias:
 
 - paddlepaddle-gpu 3.3.1
 - paddleocr 3.7.0
@@ -104,9 +114,6 @@ En el caso de `plate-detection-augmentation`, que es el que se muestra en el cua
 - nvidia-cusparse-cu12 12.5.4.2
 - nvidia-nvjitlink-cu12 12.9.86
 - nvidia-ml-py 13.615.71
-
-Instalados a mano para el entrenamiento de PaddleOCR (con `--no-deps`):
-
 - albumentations 2.0.8
 - albucore 0.0.24 (la 0.0.33 es incompatible con albumentations 2.0.8)
 - scikit-image 0.24.0
@@ -116,15 +123,9 @@ Instalados a mano para el entrenamiento de PaddleOCR (con `--no-deps`):
 - Cython 3.3.1
 - eval_type_backport 0.4.0
 
-Ya presentes y usados por PaddleOCR: shapely 2.0.7, pyclipper 1.3.0.post6, RapidFuzz 3.13.0, networkx 3.2.1, tifffile 2024.8.30.
+No obstante, al intentar ejecutar el entorno de PaddleOCR se producía un error de compatibilidad con torch, por lo que se decidió crear un nuevo entorno exclusivo para este modelo OCR, así como para el modelo de VLM.
 
-### Problema encontrado
-
-`PaddleOCR/tools/train.py` importa `paddle` primero y luego `albumentations` importa `torch`.
-Las dos librerías cargan su propia `cudnn_cnn64_9.dll` y falla con `WinError 127`.
-Solución elegida: entorno aparte `paddle`, sin torch (ver abajo).
-
-### Entorno `paddle` (conda, Python 3.9) — PENDIENTE DE CREAR
+### Nuevo entorno Anaconda para PaddleOCR con Python 3.9.25
 
 ```bash
 conda create -n VC_paddle python=3.9 -y
@@ -137,4 +138,3 @@ python -m pip install ipykernel matplotlib
 
 `PaddleOCR/requirements.txt` incluye: shapely, scikit-image, pyclipper, lmdb, tqdm, numpy, rapidfuzz, opencv-python, opencv-contrib-python, cython, Pillow, pyyaml, requests, albumentations, albucore, packaging.
 
-No instalar `torch` ni `ultralytics` en este entorno.
