@@ -1,0 +1,12 @@
+tipo_objeto,direccion,cantidad
+autobus,izquierda,1
+bicicleta,izquierda,1
+camion,estatico,1
+coche,derecha,5
+coche,estatico,66
+coche,izquierda,23
+moto,estatico,1
+moto,izquierda,2
+persona,derecha,9
+persona,estatico,6
+persona,izquierda,5

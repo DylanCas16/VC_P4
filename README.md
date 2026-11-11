@@ -10,24 +10,7 @@ Para importar el dataset en el proyecto, es necesario descargar tanto la carpeta
 
 ### Entorno de Anaconda para YOLO con Python 3.9.25
 
-Dentro del entorno se instalaron las siguientes para el entrenamiento del modelo YOLO:
-
-- torch 2.8.0+cu126
-- torchvision 0.23.0+cu126
-- ultralytics 8.4.200
-- ultralytics-thop 2.2.4
-- numpy 2.0.2
-- opencv-python 5.0.0.93
-- opencv-contrib-python 4.10.0.84
-- matplotlib 3.9.4
-- pandas 2.3.3
-- scipy 1.13.1
-- pillow 11.3.0
-- PyYAML 6.0.2
-- tqdm 4.70.1
-- jupyter 1.1.1, jupyterlab 4.5.11, notebook 7.5.8, ipykernel 6.31.0
-
-Dependencias instaladas mediante los siguientes comandos:
+Dentro del entorno se instalaron las siguientes dependencias para el modelo YOLO:
 
 ```bash
 pip install torch==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cu126
@@ -38,7 +21,7 @@ pip install jupyter==1.1.1 jupyterlab==4.5.11 notebook==7.5.8
 
 Además, la GPU utilizada para el entrenamiento fue la siguiente:
 
-- NVIDIA GeForce RTX 4050 Laptop (driver 617.42), CUDA 12.6.
+- NVIDIA GeForce RTX 4050 Laptop, CUDA 12.6.
 
 ### Reparto de imágenes del dataset
 
@@ -56,7 +39,7 @@ Una vez generado el directorio `dataset/`, se procede con la importación de los
 
 Posteriormente, se configura el modelo para ejecutar el entrenamiento correctamente con los siguientes parámetros: 
 
-- `path`, para localizar el directorio `dataset/`; `train` para las imágenes de entrenamiento en `dataset/train/`, con las que el modelo irá aprendiendo en cada época.
+- `path` para localizar el directorio `dataset/`; `train` para las imágenes de entrenamiento en `dataset/train/`, con las que el modelo irá aprendiendo en cada época.
 
 - `val` para las imágenes de evaluación en `dataset/val/`, estas imágenes permiten realizar una pequeña prueba al final de cada época para evaluar el rendimiento del modelo, permitiendo realizar ajustes a partir de sus resultados para la siguiente época.
 
@@ -92,40 +75,86 @@ En el caso de `plate-detection-augmentation`, que es el que se muestra en el cua
 | `erasing` | 0.3 | Política | Probabilidad de borrar un trozo aleatorio de la imagen. |
 | `close_mosaic` | 10 | Mezcla | Desactiva el mosaico en las últimas 10 épocas del entrenamiento. |
 
-#### Evaluación y resultados del modelo YOLO
+#### Resultados de los entrenamientos del modelo YOLO
 
-Una vez entrenado del modelo se procede con la prueba final utilizando el subdirectorio `dataset/test/`. Para ello se hace uso de la función `val()`.
+Una vez entrenado del modelo se procede con la prueba final utilizando el subdirectorio `dataset/test/`. Los valores finales obtenidos de los entrenamientos muestran los siguientes resultados:
+
+| Métrica | Normal | Con augmentation | Diferencia |
+|---|---|---|---|
+| Precisión | 0.888 | 0.889 | igual |
+| Recall | 0.707 | 0.713 | +0.006 |
+| mAP50 | 0.712 | 0.722 | +0.010 |
+| mAP50-95 | 0.436 | 0.406 | −0.030 |
+| Mejor mAP50 (época) | 0.721 (81) | 0.729 (94) | +0.008 |
+| Mejor mAP50-95 (época) | 0.442 (99) | 0.414 (84) | −0.028 |
+| `box_loss` en entrenamiento (ép. 100) | 1.20 | 1.26 | +0.06 |
+| `box_loss` en validación (ép. 100) | 1.31 | 1.42 | +0.11 |
+
+Además de esta tabla, se generaron los siguientes gráficos:
+
+[Resultados YOLO base](results/plate-detection/results.png)
+[Resultados YOLO con data augmentation](results/plate-detection-augmentation/results.png)
+
+A raíz de los datos compartidos, se puede observar como los resultados de ambos modelos son prácticamente iguales, con una pequeña mejora en el de data augmentation. En cuanto a los valores de detección se puede apreciar una ligera ventaja en data augmentation, con mejores valores en mAP50 y recall. Por otro lado, ambas matrículas detectan la misma proporción de matrículas y dejan escapar casi un 30% de estas (recall). El motivo puede ser debido al tamaño de ciertas matrículas en el dataset, siendo demasiado pequeñas, borrosas o en un ángulo complicado de detectar.
+
+En cuanto al valor mAP50-95, que indica el ajuste de la caja (matrícula), se puede apreciar un mejor desempeño en el modelo base. Este valor indica que la caja que predice el modelo es prácticamente igual a la caja marcada manualmente en las etiquetas del dataset. De todas formas, este resultado no indica que el modelo con data augmentation no encuentre las matrículas, sino que simplemente el cuadrado no es tan preciso. Este valor también justifica los valores `box_loss`, que indican la pérdida en cuanto a la precisión de las cajas.
+
+Pasando con la velocidad de aprendizaje, se observa un desempeño más lento con data augmentation debido a los distintos filtros que modifican las imágenes entre épocas. No obstante, este segundo modelo no se estanca como sí ocurre con el modelo base, llegando a superarlo en el mAP50 en las últimas épocas. Los gráficos sugieren que de haber añadido más épocas, el segundo modelo podría superar al base.
+
+Finalmente, se puede apreciar una tendencia al sobreajuste en las últimas épocas del modelo base debido a una brecha entre el entrenamiento y la validación, señal de que el modelo empieza a memorizar. Por el contrario, el modelo con data augmentation muestra unas curvas más igualadas durante todo el entrenamiento.
+
+En base a todo lo comentado, se puede llegar a una conclusión sobre qué modelo utilizar, si lo que se busca es la caja más ajustada, es preferible el entrenamiento normal; si por el contrario se busca generalizar mejor y se puede entrenar durante más épocas, el de data augmentation.
+
+#### Prueba final del modelo en un video
+
+Para la prueba final se utilizó este [vídeo](https://ulpgc-my.sharepoint.com/personal/mcastrillon_iusiani_ulpgc_es/_layouts/15/stream.aspx?id=%2Fpersonal%2Fmcastrillon%5Fiusiani%5Fulpgc%5Fes%2FDocuments%2FRecordings%2FC0142%2EMP4&ga=1&share=cQp0bJ6%2DGLkPQq4XHpEzwA%5FGEgUCbGUicnP93So3tDpcv8c50Q&referrer=StreamWebApp%2EWeb&referrerScenario=AddressBarCopied%2Eview%2E316dd0e7%2D950a%2D4304%2D9f8d%2D7747aa932c4c), el cual muestra una vía pública donde van pasando vehículos y personas. El objetivo de la prueba consiste en las siguientes tareas:
+
+- Detectar tanto personas como cualquier vehículo.
+- Implementar un seguimiento para todos los objetivos.
+- Realizar un conteo de cada clase, indicando además en que dirección van al salir de la escena.
+- Detectar matrículas utilizando el modelo previamente entrenado.
+- Anonimizar tanto personas como vehículos.
+- Comparar la detección de YOLO con una de contornos.
+
+El resultado final se puede encontrar en el siguiente [vídeo]() de YouTube. Y los valores de conteo obtenidos fueron:
+
+Total por clase:
+- autobus: 1
+- bicicleta: 1
+- camion: 1
+- coche: 94
+- moto: 3
+- persona: 20
+- vehículos con matrícula detectada: 54
+
+Flujo por dirección de movimiento:
+- autobus -> izquierda: 1
+- bicicleta -> izquierda: 1
+- camion -> estatico: 1
+- coche -> derecha: 5
+- coche -> estatico: 66
+- coche -> izquierda: 23
+- moto -> estatico: 1
+- moto -> izquierda: 2
+- persona -> derecha: 9
+- persona -> estatico: 6
+- persona -> izquierda: 5
+
+Detección de matrículas en dataset/test:
+- Contornos: recall=0.14  precisión=0.04  detecciones=2330
+- YOLO: recall=0.77  precisión=0.86  detecciones=428
+
+Cabe mencionar un pequeño problema surgido durante la prueba. Al principio se daba el caso en el que al pasar un vehículo por delante de los que están aparcados, el modelo perdía su rastro y lo detectaba como un nuevo vehículo aumentando drásticamente el ID hasta en más de 700 coches. Para solucionarlo, se creó un nuevo `tracker` a partir de `bytetrack`, el utilizado anteriormente. Este nuevo permite conservar el identificador de un vehículo en un periodo de tiempo de unos 3 segundos, con un umbral de movimiento reducido pero que también ayuda a no perder su seguimiento si este se mueve un poco. Gracias a esto, el problema se consiguió reducir bastante aunque aún infla un poco las cifras de los vehículos.
 
 ## Lector de matrículas
 
 ### Problema con el primer entorno de Anaconda para PaddleOCR
 
-Al principio se intentó instalar todas las dependencias de PaddleOCR dentro del entorno para YOLO, instalando las siguientes dependencias:
-
-- paddlepaddle-gpu 3.3.1
-- paddleocr 3.7.0
-- paddlex 3.7.2
-- nvidia-cublas-cu12 12.6.4.1
-- nvidia-cuda-runtime-cu12 12.6.77
-- nvidia-cudnn-cu12 9.5.1.17
-- nvidia-cufft-cu12 11.3.0.4
-- nvidia-curand-cu12 10.3.7.77
-- nvidia-cusolver-cu12 11.7.1.2
-- nvidia-cusparse-cu12 12.5.4.2
-- nvidia-nvjitlink-cu12 12.9.86
-- nvidia-ml-py 13.615.71
-- albumentations 2.0.8
-- albucore 0.0.24 (la 0.0.33 es incompatible con albumentations 2.0.8)
-- scikit-image 0.24.0
-- lmdb 3.0.0
-- imageio 2.37.2
-- lazy-loader 0.6
-- Cython 3.3.1
-- eval_type_backport 0.4.0
-
-No obstante, al intentar ejecutar el entorno de PaddleOCR se producía un error de compatibilidad con torch, por lo que se decidió crear un nuevo entorno exclusivo para este modelo OCR, así como para el modelo de VLM.
+Al principio se intentó instalar todas las dependencias de PaddleOCR dentro del entorno para YOLO. No obstante, al intentar ejecutar el entorno de PaddleOCR se producía un error de compatibilidad con torch, por lo que se decidió crear un nuevo entorno exclusivo para este modelo OCR, así como para el modelo de VLM.
 
 ### Nuevo entorno Anaconda para PaddleOCR con Python 3.9.25
+
+El nuevo entorno de Anaconda para el modelo PaddleOCR contiene las siguientes dependencias:
 
 ```bash
 conda create -n VC_paddle python=3.9 -y
@@ -138,3 +167,6 @@ python -m pip install ipykernel matplotlib
 
 `PaddleOCR/requirements.txt` incluye: shapely, scikit-image, pyclipper, lmdb, tqdm, numpy, rapidfuzz, opencv-python, opencv-contrib-python, cython, Pillow, pyyaml, requests, albumentations, albucore, packaging.
 
+### Obtención de las matrículas del dataset
+
+Para que el modelo pueda aprender a leer correctamente las matrículas del coche fue necesario realizar un ajuste en el dataset que ya se tenía. Para ello, la primera celda del cuaderno `PaddleOCR_P4.ipynb` recorta las matrículas y genera nuevas imágenes legibles para este modelo. No obstante, todas las imágenes no eran válidas debido al tamaño de la matrícula, distancia o que no tuviera el número de matrícula anotado en la etiqueta.
